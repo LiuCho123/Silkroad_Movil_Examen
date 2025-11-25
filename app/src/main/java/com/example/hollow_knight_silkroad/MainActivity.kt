@@ -1,0 +1,153 @@
+package com.example.hollow_knight_silkroad
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navigation
+import com.example.hollow_knight_silkroad.Model.AppDatabase
+import com.example.hollow_knight_silkroad.Repository.ChecklistRepositoryDb
+import com.example.hollow_knight_silkroad.Repository.HiloRepository
+import com.example.hollow_knight_silkroad.Repository.RespuestaRepository
+import com.example.hollow_knight_silkroad.Repository.TriviaRepository
+import com.example.hollow_knight_silkroad.Repository.UsuarioRepository
+import com.example.hollow_knight_silkroad.View.Components.BottomNavigationBar
+import com.example.hollow_knight_silkroad.View.Components.NavigationItem
+import com.example.hollow_knight_silkroad.View.Components.bottomNavItems
+import com.example.hollow_knight_silkroad.View.Screens.*
+import com.example.hollow_knight_silkroad.ViewModel.*
+import com.example.hollow_knight_silkroad.ui.theme.Hollow_Knight_SilkroadTheme
+
+@Composable
+inline fun <reified VM : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavHostController): VM {
+    val navGraphRoute = destination.parent?.route ?: return viewModel()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return viewModel(viewModelStoreOwner = parentEntry)
+}
+
+
+class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            Hollow_Knight_SilkroadTheme {
+                val navController = rememberNavController()
+
+                val context = LocalContext.current
+                val database = remember { AppDatabase.getDatabase(context) }
+                val usuarioRepository = remember { UsuarioRepository(database.usuarioDao()) }
+                val hiloRepository = remember { HiloRepository(database.hiloDao()) }
+                val respuestaRepository = remember { RespuestaRepository(database.respuestaDao()) }
+                val triviaRepository = remember { TriviaRepository(database.preguntaDao(), database.opcionDao())}
+                val checklistRepository = remember { ChecklistRepositoryDb(database.ChecklistItemDao()) }
+
+                val loginViewModel = remember { LoginViewModel(usuarioRepository) }
+                val registroViewModel = remember { RegistroViewModel(usuarioRepository) }
+                val recuperarViewModel = remember { RecuperarContrasenaViewModel(usuarioRepository) }
+                val crearHiloViewModel = remember { CrearHiloViewModel (hiloRepository)}
+                val triviaViewModel = remember { TriviaViewModel(triviaRepository) }
+                val checklistViewModel: ChecklistViewModel = viewModel(factory = ChecklistViewModelFactory(checklistRepository))
+                val guiaViewModel: GuiaViewModel = viewModel()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                val rutasConNavBar = bottomNavItems.map { it.route }
+                val mostrarNavBar = currentRoute in rutasConNavBar
+
+                Scaffold(
+                    bottomBar = {
+                        if (mostrarNavBar) {
+                            BottomNavigationBar(navController = navController)
+                        }
+                    }
+                ) { innerPadding ->
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+
+                        composable("home"){
+                            HomeScreen(navController = navController)
+                        }
+                        composable("login"){
+                            LoginScreen(viewModel = loginViewModel, navController = navController)
+                        }
+                        composable("register"){
+                            RegisterScreen(viewModel = registroViewModel, navController = navController)
+                        }
+
+                        navigation(
+                            startDestination = "olvidePassword",
+                            route = "recuperacionGraph"
+                        ) {
+                            composable("olvidePassword"){
+                                OlvidePasswordScreen(viewModel = recuperarViewModel, navController = navController)
+                            }
+                            composable("verificarCodigo"){
+                                VerificarCodigoScreen(viewModel = recuperarViewModel, navController = navController)
+                            }
+                            composable("recuperarPassword"){
+                                RecuperarPasswordScreen(viewModel = recuperarViewModel, navController = navController)
+                            }
+                        }
+
+                        composable(NavigationItem.Foro.route) {
+                            val foroViewModel = remember { ForoViewModel(hiloRepository, respuestaRepository) }
+                            ForoScreen(viewModel = foroViewModel, navController = navController)
+                        }
+                        composable(NavigationItem.Guia.route) { 
+                            GuiaScreen(viewModel = guiaViewModel) 
+                        }
+                        composable(NavigationItem.Checklist.route) {
+                            ChecklistScreen(viewModel = checklistViewModel)
+                        }
+                        composable(NavigationItem.Ranking.route) {
+                             RankingScreen(checklistViewModel = checklistViewModel)
+                        }
+                        composable(NavigationItem.Trivia.route) {
+                            TriviaScreen(viewModel = triviaViewModel, navController = navController)
+                        }
+
+
+                        composable("crearHilo") {
+                            CrearHiloScreen(viewModel = crearHiloViewModel, navController = navController)
+                        }
+                        composable(
+                            route = "hiloDetalle/{hiloId}",
+                            arguments = listOf(navArgument("hiloId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val hiloId = backStackEntry.arguments?.getInt("hiloId") ?: 0
+                            val hiloDetalleViewModel = remember { HiloDetalleViewModel(hiloRepository, respuestaRepository) }
+                            HiloDetalleScreen(
+                                hiloId = hiloId,
+                                viewModel = hiloDetalleViewModel,
+                                navController = navController
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

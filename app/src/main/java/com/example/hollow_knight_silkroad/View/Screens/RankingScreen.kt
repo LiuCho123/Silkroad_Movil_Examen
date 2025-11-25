@@ -1,0 +1,159 @@
+package com.example.hollow_knight_silkroad.View.Screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hollow_knight_silkroad.View.Components.AppBackground
+import com.example.hollow_knight_silkroad.ViewModel.ChecklistViewModel
+import com.example.hollow_knight_silkroad.ViewModel.RankingUser
+import com.example.hollow_knight_silkroad.ViewModel.RankingViewModel
+
+class RankingViewModelFactory(
+    private val checklistViewModel: ChecklistViewModel
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(RankingViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return RankingViewModel(checklistViewModel) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class for RankingViewModelFactory")
+    }
+}
+
+@Composable
+fun RankingScreen(
+    checklistViewModel: ChecklistViewModel = viewModel(),
+    rankingViewModel: RankingViewModel = viewModel(
+        factory = RankingViewModelFactory(checklistViewModel)
+    )
+) {
+    val rankingState by rankingViewModel.uiState.collectAsState()
+
+    AppBackground {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Ranking de Hallownest",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Text(
+                "Top 5 Exploradores",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 24.dp),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+
+            if (rankingState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Text(
+                            "Cargando ranking...",
+                            modifier = Modifier.padding(top = 8.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    item {
+                        RankingRowHeader()
+                        HorizontalDivider()
+                    }
+                    itemsIndexed(rankingState.topUsers, key = { _, user -> user.name }) { index, user ->
+                        RankingRow(rank = index + 1, user = user)
+                        HorizontalDivider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RankingRowHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "#",
+            modifier = Modifier.width(40.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        Text(
+            "Jugador",
+            modifier = Modifier.weight(1f),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        Text(
+            "Progreso",
+            modifier = Modifier.width(80.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            textAlign = TextAlign.End,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
+
+@Composable
+fun RankingRow(rank: Int, user: RankingUser) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+            .background(if (user.isCurrentUser) Color(0xFFD0FF00).copy(alpha = 0.1f) else Color.Transparent),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "$rank",
+            modifier = Modifier.width(40.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = if (user.isCurrentUser) Color(0xFFD0FF00) else MaterialTheme.colorScheme.onPrimary
+        )
+        Text(
+            user.name,
+            modifier = Modifier.weight(1f),
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        Text(
+            "${String.format("%.2f", user.score)}%",
+            modifier = Modifier.width(80.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = Color(0xFFD0FF00),
+            textAlign = TextAlign.End
+        )
+    }
+}

@@ -1,0 +1,108 @@
+package com.example.hollow_knight_silkroad.Model
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+@Database(entities = [Usuario::class, Hilo::class, Respuesta::class, CheckedItem::class,
+    Pregunta::class, Opcion::class],
+    version = 6, exportSchema = false)
+abstract class AppDatabase: RoomDatabase(){
+    abstract fun usuarioDao(): UsuarioDao
+    abstract fun ChecklistItemDao(): ChecklistItemDao
+    abstract fun hiloDao(): HiloDao
+    abstract fun respuestaDao(): RespuestaDao
+    abstract fun preguntaDao(): PreguntaDao
+    abstract fun opcionDao(): OpcionDao
+
+    companion object{
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase{
+            return INSTANCE ?: synchronized(this){
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "hollow_knight_silkroad_db.db"
+                )
+                    .addCallback(object: RoomDatabase.Callback(){
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val database = getDatabase(context)
+                                prepoblarHilos(database.hiloDao())
+                                prepoblarTrivia(database.preguntaDao(), database.opcionDao())
+                            }
+                        }
+                    })
+                    .fallbackToDestructiveMigration()
+                    .build()
+
+                INSTANCE = instance
+                instance
+            }
+        }
+
+        suspend fun prepoblarHilos(hiloDao: HiloDao){
+            val ahora = System.currentTimeMillis()
+            val hilosIniciales = listOf(
+                Hilo(idHilo = 1, titulo = "Guía para el Panteón de Hallownest", autor = "HornetFan92",
+                    contenido = "¡Hola a todos! Abro este hilo...",
+                    fechaCreacion = ahora - 86400000),
+                Hilo(idHilo = 2, titulo = "¿Creen que Silksong salga este año?", autor = "LaceLover",
+                    contenido = "Ya no puedo más con la espera...",
+                    fechaCreacion = ahora - 172800000),
+                Hilo(idHilo = 3, titulo = "Mis amuletos favoritos para exploración", autor = "TheMiner2",
+                    contenido = "Para moverme rápido por el mapa...",
+                    fechaCreacion = ahora)
+            )
+
+            hilosIniciales.forEach { hilo ->
+                if (hiloDao.getHiloById(hilo.idHilo) == null){
+                    hiloDao.insertarHilo(hilo)
+                }
+            }
+            println("Base de datos poblada con Hilos")
+        }
+
+        suspend fun prepoblarTrivia(preguntaDao: PreguntaDao, opcionDao: OpcionDao) {
+            preguntaDao.insertarPreguntas(listOf(
+                Pregunta(idPregunta = 1, textoPregunta = "¿Cuál es el nombre del personaje principal de Hollow Knight?")
+            ))
+            opcionDao.insertarOpciones(listOf(
+                Opcion(preguntaId = 1, textoOpcion = "Hornet", esCorrecta = false),
+                Opcion(preguntaId = 1, textoOpcion = "El Caballero", esCorrecta = true),
+                Opcion(preguntaId = 1, textoOpcion = "Zote", esCorrecta = false),
+                Opcion(preguntaId = 1, textoOpcion = "Quirrel", esCorrecta = false)
+            ))
+
+            preguntaDao.insertarPreguntas(listOf(
+                Pregunta(idPregunta = 2, textoPregunta = "¿Qué objeto necesitas para poder 'soñar' y acceder a memorias?")
+            ))
+            opcionDao.insertarOpciones(listOf(
+                Opcion(preguntaId = 2, textoOpcion = "Aguijón Onírico", esCorrecta = true),
+                Opcion(preguntaId = 2, textoOpcion = "Capa de Ala de Polilla", esCorrecta = false),
+                Opcion(preguntaId = 2, textoOpcion = "Lágrima de Isma", esCorrecta = false),
+                Opcion(preguntaId = 2, textoOpcion = "Corazón de Cristal", esCorrecta = false)
+            ))
+
+            preguntaDao.insertarPreguntas(listOf(
+                Pregunta(idPregunta = 3, textoPregunta = "¿En qué área comienzas el juego?")
+            ))
+            opcionDao.insertarOpciones(listOf(
+                Opcion(preguntaId = 3, textoOpcion = "Bocasucia", esCorrecta = true),
+                Opcion(preguntaId = 3, textoOpcion = "Cruces Olvidados", esCorrecta = false),
+                Opcion(preguntaId = 3, textoOpcion = "Cañón Nublado", esCorrecta = false),
+                Opcion(preguntaId = 3, textoOpcion = "Páramos Fúngicos", esCorrecta = false)
+            ))
+
+            println("Base de datos poblada con Trivia")
+        }
+    }
+}
