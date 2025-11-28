@@ -3,8 +3,10 @@ package com.example.hollow_knight_silkroad.View.Screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -30,6 +32,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.asImageBitmap // <--- IMPORTANTE
+import androidx.compose.ui.graphics.painter.BitmapPainter // <--- IMPORTANTE
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,9 +49,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.hollow_knight_silkroad.Model.Respuesta
 import com.example.hollow_knight_silkroad.R
 import com.example.hollow_knight_silkroad.View.Components.AppBackground
+import com.example.hollow_knight_silkroad.View.Components.rememberBase64Painter
 import com.example.hollow_knight_silkroad.ViewModel.HiloDetalleViewModel
 import java.io.File
 import java.text.SimpleDateFormat
@@ -119,7 +124,7 @@ fun HiloDetalleScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 16.dp)
-                .navigationBarsPadding()
+                .navigationBarsPadding() // Asegura que no choque con la barra de navegación
         ) {
             Row(
                 modifier = Modifier
@@ -204,9 +209,9 @@ fun HiloDetalleScreen(
                     contenido = uiState.nuevaRespuestaContenido,
                     imagenUriRespuesta = uiState.imagenUriNuevaRespuesta,
                     onContenidoChange = { viewModel.onNuevaRespuestaChange(it) },
-                    onPublicarClick = { viewModel.publicarRespuesta() },
+                    onPublicarClick = { viewModel.publicarRespuesta(contexto) },
                     onGaleriaClick = { lanzadorGaleria.launch("image/*") },
-                    onCamaraClick = { // Pass camera action with permission check
+                    onCamaraClick = {
                         when (PackageManager.PERMISSION_GRANTED) {
                             ContextCompat.checkSelfPermission(contexto, Manifest.permission.CAMERA) -> {
                                 val uri = crearUriImagen(contexto)
@@ -240,10 +245,10 @@ fun MensajeItem(autor: String, contenido: String, fecha: Long, isOriginal: Boole
         Column(modifier = Modifier.padding(12.dp)) {
             Text(autor, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            imagenUriString?.let { uriString ->
-                val uri = remember { Uri.parse(uriString) }
+
+            if (!imagenUriString.isNullOrBlank()) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = uri),
+                    painter = rememberBase64Painter(base64String = imagenUriString),
                     contentDescription = "Imagen adjunta",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -358,3 +363,4 @@ fun crearUriImagen(contexto: Context): Uri {
         archivo
     )
 }
+

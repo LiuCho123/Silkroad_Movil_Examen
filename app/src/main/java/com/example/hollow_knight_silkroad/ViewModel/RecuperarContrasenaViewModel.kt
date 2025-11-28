@@ -47,21 +47,14 @@ class RecuperarContrasenaViewModel(private val repository: UsuarioRepository) : 
             delay(1000)
 
             val emailActual = _uiState.value.email
-            if(emailActual.isBlank() || !emailActual.contains("@")){
-                _uiState.update{it.copy(error = "Ingrese un correo válido", isLoading = false)}
-                return@launch
-            }
 
-            val usuarioExiste = repository.findUsuarioByEmail(emailActual) != null
+            val codigoRecibido = repository.solicitarCodigoRecuperacion(emailActual)
 
-            if (usuarioExiste){
-                val codigoGenerado = Random.nextInt(100000, 999999).toString()
-                println("Código para $emailActual: $codigoGenerado")
-
+            if (codigoRecibido != null){
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        codigoGenerado = codigoGenerado,
+                        codigoGenerado = codigoRecibido,
                         navegacion = "verificarCodigo"
                     )
                 }

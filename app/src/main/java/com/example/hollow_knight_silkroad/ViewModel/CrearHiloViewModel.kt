@@ -1,5 +1,6 @@
 package com.example.hollow_knight_silkroad.ViewModel
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,7 +30,7 @@ class CrearHiloViewModel(private val repository: HiloRepository): ViewModel() {
         _uiState.update { it.copy(imagenUriSeleccionada = uri?.toString()) }
     }
 
-    fun publicarHilo(){
+    fun publicarHilo(context: Context){
         viewModelScope.launch {
             val currentState = _uiState.value
 
@@ -39,7 +40,6 @@ class CrearHiloViewModel(private val repository: HiloRepository): ViewModel() {
             }
 
             _uiState.update { it.copy(isLoading = true, error = null) }
-            delay(1000)
 
             val nuevoHilo = Hilo(
                 idHilo = 0,
@@ -50,14 +50,18 @@ class CrearHiloViewModel(private val repository: HiloRepository): ViewModel() {
                 fechaCreacion = System.currentTimeMillis()
             )
 
-            try{
-                repository.insertarHilo(nuevoHilo)
+            val exito = repository.insertarHilo(
+                context = context,
+                hilo = nuevoHilo,
+                uriImagen = currentState.imagenUriSeleccionada
+            )
+
+            if (exito){
                 println("Nuevo hilo insertado: ${nuevoHilo.titulo}")
                 _uiState.update { it.copy(isLoading = false, hiloCreadoExitoso = true) }
-            } catch (e: Exception){
-                println("Error al insertar hilo: ${e.message}")
+            } else{
+                println("Error al insertar hilo")
                 _uiState.update { it.copy(isLoading = false, error = "Error al publicar el hilo") }
-                e.printStackTrace()
             }
         }
     }

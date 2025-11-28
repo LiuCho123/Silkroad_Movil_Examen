@@ -1,5 +1,8 @@
 package com.example.hollow_knight_silkroad.View.Screens
 
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,15 +33,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.hollow_knight_silkroad.Model.Hilo
 import com.example.hollow_knight_silkroad.View.Components.AppBackground
+import com.example.hollow_knight_silkroad.View.Components.rememberBase64Painter
 import com.example.hollow_knight_silkroad.ViewModel.ForoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -130,6 +139,18 @@ fun HiloItem(hilo: Hilo, numRespuestas: Int, onClick: (Int) -> Unit){
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column (modifier = Modifier.padding(16.dp)){
+            if (!hilo.imagenUri.isNullOrBlank()){
+                Image(
+                    painter = rememberBase64Painter(base64String = hilo.imagenUri),
+                    contentDescription = "Imagen del hilo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             Text(
                 text = hilo.titulo,
                 fontWeight = FontWeight.Bold,
@@ -161,3 +182,4 @@ private fun formatearFecha(timestamp: Long): String{
     val fecha = Date(timestamp)
     return sdf.format((fecha))
 }
+
