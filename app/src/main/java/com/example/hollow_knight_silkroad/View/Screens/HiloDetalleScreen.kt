@@ -136,7 +136,7 @@ fun HiloDetalleScreen(
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Volver al foro", tint = Color.White)
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                if (uiState.hilo != null) {
+                if (uiState.hilo != null && uiState.esMiHilo) {
                     IconButton(onClick = { viewModel.eliminarHiloActual() }) {
                         Icon(Icons.Filled.Delete, contentDescription = "Eliminar Hilo", tint = Color.Red)
                     }

@@ -11,5 +11,6 @@ data class HiloDetalleUIState(
     val error: String? = null,
     val respuestaPublicada: Boolean = false,
     val navegacion: String? = null,
-    val imagenUriNuevaRespuesta: String? = null
+    val imagenUriNuevaRespuesta: String? = null,
+    val esMiHilo: Boolean = false
 )

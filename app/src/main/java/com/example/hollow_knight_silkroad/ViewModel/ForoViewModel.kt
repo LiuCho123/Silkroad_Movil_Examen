@@ -6,6 +6,7 @@ import com.example.hollow_knight_silkroad.ViewModel.ForoUIState
 
 import com.example.hollow_knight_silkroad.Repository.HiloRepository
 import com.example.hollow_knight_silkroad.Repository.RespuestaRepository
+import com.example.hollow_knight_silkroad.Repository.UsuarioRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 
 class ForoViewModel(
     private val hiloRepository: HiloRepository,
-    private val respuestaRepository: RespuestaRepository
+    private val respuestaRepository: RespuestaRepository,
+    private val usuarioRepository: UsuarioRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ForoUIState())
@@ -56,5 +58,12 @@ class ForoViewModel(
 
     fun refrescarHilos() {
         cargarHilos()
+    }
+
+    fun cerrarSesion(onLogoutCompleto: () -> Unit){
+        viewModelScope.launch{
+            usuarioRepository.logout()
+            onLogoutCompleto()
+        }
     }
 }

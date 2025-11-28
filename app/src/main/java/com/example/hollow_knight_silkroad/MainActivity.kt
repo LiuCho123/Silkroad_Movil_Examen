@@ -3,11 +3,12 @@ package com.example.hollow_knight_silkroad
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -43,7 +44,6 @@ inline fun <reified VM : ViewModel> NavBackStackEntry.sharedViewModel(navControl
     return viewModel(viewModelStoreOwner = parentEntry)
 }
 
-
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,99 +51,87 @@ class MainActivity : ComponentActivity() {
         setContent {
             Hollow_Knight_SilkroadTheme {
                 val navController = rememberNavController()
-
                 val context = LocalContext.current
+
                 val database = remember { AppDatabase.getDatabase(context) }
-                val usuarioRepository = remember { UsuarioRepository() }
+                val usuarioRepository = remember { UsuarioRepository(context) }
                 val hiloRepository = remember { HiloRepository() }
                 val respuestaRepository = remember { RespuestaRepository() }
-                val triviaRepository = remember { TriviaRepository(database.preguntaDao(), database.opcionDao())}
+                val triviaRepository = remember { TriviaRepository(database.preguntaDao(), database.opcionDao()) }
                 val checklistRepository = remember { ChecklistRepositoryDb(database.ChecklistItemDao()) }
 
                 val loginViewModel = remember { LoginViewModel(usuarioRepository) }
                 val registroViewModel = remember { RegistroViewModel(usuarioRepository) }
                 val recuperarViewModel = remember { RecuperarContrasenaViewModel(usuarioRepository) }
-                val crearHiloViewModel = remember { CrearHiloViewModel (hiloRepository)}
+                val crearHiloViewModel = remember { CrearHiloViewModel(hiloRepository) }
                 val triviaViewModel = remember { TriviaViewModel(triviaRepository) }
                 val checklistViewModel: ChecklistViewModel = viewModel(factory = ChecklistViewModelFactory(checklistRepository))
                 val guiaViewModel: GuiaViewModel = viewModel()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
 
-                val rutasConNavBar = bottomNavItems.map { it.route }
-                val mostrarNavBar = currentRoute in rutasConNavBar
+                var startDestination by remember { mutableStateOf("home") }
+                var isCheckingSession by remember { mutableStateOf(true) }
 
-                Scaffold(
-                    bottomBar = {
-                        if (mostrarNavBar) {
-                            BottomNavigationBar(navController = navController)
-                        }
+                LaunchedEffect(Unit) {
+                    val haySesion = usuarioRepository.verificarSesionGuardad()
+                    if (haySesion) {
+                        startDestination = NavigationItem.Foro.route
+                    } else {
+                        startDestination = "home"
                     }
-                ) { innerPadding ->
+                    isCheckingSession = false
+                }
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = "home",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
+                if (isCheckingSession) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
+                    val rutasConNavBar = bottomNavItems.map { it.route }
+                    val mostrarNavBar = currentRoute in rutasConNavBar
 
-                        composable("home"){
-                            HomeScreen(navController = navController)
+                    Scaffold(
+                        bottomBar = {
+                            if (mostrarNavBar) {
+                                BottomNavigationBar(navController = navController)
+                            }
                         }
-                        composable("login"){
-                            LoginScreen(viewModel = loginViewModel, navController = navController)
-                        }
-                        composable("register"){
-                            RegisterScreen(viewModel = registroViewModel, navController = navController)
-                        }
-
-                        navigation(
-                            startDestination = "olvidePassword",
-                            route = "recuperacionGraph"
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                            modifier = Modifier.padding(innerPadding)
                         ) {
-                            composable("olvidePassword"){
-                                OlvidePasswordScreen(viewModel = recuperarViewModel, navController = navController)
-                            }
-                            composable("verificarCodigo"){
-                                VerificarCodigoScreen(viewModel = recuperarViewModel, navController = navController)
-                            }
-                            composable("recuperarPassword"){
-                                RecuperarPasswordScreen(viewModel = recuperarViewModel, navController = navController)
-                            }
-                        }
+                            composable("home") { HomeScreen(navController = navController) }
+                            composable("login") { LoginScreen(viewModel = loginViewModel, navController = navController) }
+                            composable("register") { RegisterScreen(viewModel = registroViewModel, navController = navController) }
 
-                        composable(NavigationItem.Foro.route) {
-                            val foroViewModel = remember { ForoViewModel(hiloRepository, respuestaRepository) }
-                            ForoScreen(viewModel = foroViewModel, navController = navController)
-                        }
-                        composable(NavigationItem.Guia.route) { 
-                            GuiaScreen(viewModel = guiaViewModel) 
-                        }
-                        composable(NavigationItem.Checklist.route) {
-                            ChecklistScreen(viewModel = checklistViewModel)
-                        }
-                        composable(NavigationItem.Ranking.route) {
-                             RankingScreen(checklistViewModel = checklistViewModel)
-                        }
-                        composable(NavigationItem.Trivia.route) {
-                            TriviaScreen(viewModel = triviaViewModel, navController = navController)
-                        }
+                            navigation(startDestination = "olvidePassword", route = "recuperacionGraph") {
+                                composable("olvidePassword") { OlvidePasswordScreen(viewModel = recuperarViewModel, navController = navController) }
+                                composable("verificarCodigo") { VerificarCodigoScreen(viewModel = recuperarViewModel, navController = navController) }
+                                composable("recuperarPassword") { RecuperarPasswordScreen(viewModel = recuperarViewModel, navController = navController) }
+                            }
 
+                            composable(NavigationItem.Foro.route) {
+                                val foroViewModel = remember { ForoViewModel(hiloRepository, respuestaRepository, usuarioRepository) }
+                                ForoScreen(viewModel = foroViewModel, navController = navController)
+                            }
+                            composable(NavigationItem.Guia.route) { GuiaScreen(viewModel = guiaViewModel) }
+                            composable(NavigationItem.Checklist.route) { ChecklistScreen(viewModel = checklistViewModel) }
+                            composable(NavigationItem.Ranking.route) { RankingScreen(checklistViewModel = checklistViewModel) }
+                            composable(NavigationItem.Trivia.route) { TriviaScreen(viewModel = triviaViewModel, navController = navController) }
 
-                        composable("crearHilo") {
-                            CrearHiloScreen(viewModel = crearHiloViewModel, navController = navController)
-                        }
-                        composable(
-                            route = "hiloDetalle/{hiloId}",
-                            arguments = listOf(navArgument("hiloId") { type = NavType.IntType })
-                        ) { backStackEntry ->
-                            val hiloId = backStackEntry.arguments?.getInt("hiloId") ?: 0
-                            val hiloDetalleViewModel = remember { HiloDetalleViewModel(hiloRepository, respuestaRepository) }
-                            HiloDetalleScreen(
-                                hiloId = hiloId,
-                                viewModel = hiloDetalleViewModel,
-                                navController = navController
-                            )
+                            composable("crearHilo") { CrearHiloScreen(viewModel = crearHiloViewModel, navController = navController) }
+
+                            composable(
+                                route = "hiloDetalle/{hiloId}",
+                                arguments = listOf(navArgument("hiloId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                val hiloId = backStackEntry.arguments?.getInt("hiloId") ?: 0
+                                val hiloDetalleViewModel = remember { HiloDetalleViewModel(hiloRepository, respuestaRepository) }
+                                HiloDetalleScreen(hiloId = hiloId, viewModel = hiloDetalleViewModel, navController = navController)
+                            }
                         }
                     }
                 }
