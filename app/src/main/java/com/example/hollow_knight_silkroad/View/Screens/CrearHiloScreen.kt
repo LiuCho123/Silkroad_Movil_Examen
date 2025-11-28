@@ -215,7 +215,7 @@ fun CrearHiloScreen(viewModel: CrearHiloViewModel, navController: NavController)
                     Spacer(modifier = Modifier.height(32.dp))
 
                     OutlinedButton(
-                        onClick = { viewModel.publicarHilo() },
+                        onClick = { viewModel.publicarHilo(contexto) },
                         modifier = Modifier.fillMaxWidth().height(50.dp).align(Alignment.CenterHorizontally),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, Color.White),

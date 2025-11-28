@@ -52,7 +52,7 @@ class HiloDetalleViewModel(
     fun onImagenRespuestaSeleccionada(uri: Uri?){
         _uiState.update { it.copy(imagenUriNuevaRespuesta = uri?.toString()) }
     }
-    fun publicarRespuesta(){
+    fun publicarRespuesta(context: android.content.Context){
         val hiloId = hiloIdActual ?: return
         val state = _uiState.value
 
@@ -71,7 +71,11 @@ class HiloDetalleViewModel(
                     fechaCreacion = System.currentTimeMillis(),
                     imagenUri = state.imagenUriNuevaRespuesta
                 )
-                respuestaRepository.insertarRespuesta(nuevaRespuesta)
+                respuestaRepository.insertarRespuesta(
+                    context = context,
+                    respuesta = nuevaRespuesta,
+                    uriImagen = state.imagenUriNuevaRespuesta
+                )
 
                 val respuestasActualizadas = respuestaRepository.getRespuestasByHiloId(hiloId)
                 _uiState.update {
