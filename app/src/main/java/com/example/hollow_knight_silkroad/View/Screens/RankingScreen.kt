@@ -14,34 +14,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hollow_knight_silkroad.View.Components.AppBackground
-import com.example.hollow_knight_silkroad.ViewModel.ChecklistViewModel
 import com.example.hollow_knight_silkroad.ViewModel.RankingUser
 import com.example.hollow_knight_silkroad.ViewModel.RankingViewModel
 
-class RankingViewModelFactory(
-    private val checklistViewModel: ChecklistViewModel
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RankingViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return RankingViewModel(checklistViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class for RankingViewModelFactory")
-    }
-}
-
 @Composable
 fun RankingScreen(
-    checklistViewModel: ChecklistViewModel = viewModel(),
-    rankingViewModel: RankingViewModel = viewModel(
-        factory = RankingViewModelFactory(checklistViewModel)
-    )
+    viewModel: RankingViewModel
 ) {
-    val rankingState by rankingViewModel.uiState.collectAsState()
+    val rankingState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarRanking()
+    }
 
     AppBackground {
         Column(
@@ -57,7 +42,7 @@ fun RankingScreen(
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Text(
-                "Top 5 Exploradores",
+                "Top Exploradores",
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 24.dp),
                 color = MaterialTheme.colorScheme.onPrimary
@@ -69,9 +54,9 @@ fun RankingScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color(0xFFFFD700))
                         Text(
-                            "Cargando ranking...",
+                            "Consultando archivos...",
                             modifier = Modifier.padding(top = 8.dp),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
@@ -81,11 +66,11 @@ fun RankingScreen(
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     item {
                         RankingRowHeader()
-                        HorizontalDivider()
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
                     }
-                    itemsIndexed(rankingState.topUsers, key = { _, user -> user.name }) { index, user ->
+                    itemsIndexed(rankingState.topUsers) { index, user ->
                         RankingRow(rank = index + 1, user = user)
-                        HorizontalDivider()
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                     }
                     item {
                         Spacer(modifier = Modifier.height(32.dp))
@@ -156,7 +141,7 @@ fun RankingRowHeader() {
             color = MaterialTheme.colorScheme.onPrimary
         )
         Text(
-            "Progreso",
+            "Items",
             modifier = Modifier.width(80.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -168,11 +153,14 @@ fun RankingRowHeader() {
 
 @Composable
 fun RankingRow(rank: Int, user: RankingUser) {
+    val backgroundColor = if (user.isCurrentUser) Color(0xFFD0FF00).copy(alpha = 0.15f) else Color.Transparent
+    val rankColor = if (user.isCurrentUser) Color(0xFFD0FF00) else MaterialTheme.colorScheme.onPrimary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
-            .background(if (user.isCurrentUser) Color(0xFFD0FF00).copy(alpha = 0.1f) else Color.Transparent),
+            .background(backgroundColor)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -180,17 +168,18 @@ fun RankingRow(rank: Int, user: RankingUser) {
             modifier = Modifier.width(40.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = if (user.isCurrentUser) Color(0xFFD0FF00) else MaterialTheme.colorScheme.onPrimary
+            color = rankColor
         )
         Text(
             user.name,
             modifier = Modifier.weight(1f),
             fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = MaterialTheme.colorScheme.onPrimary,
+            maxLines = 1
         )
         Text(
-            "${String.format("%.2f", user.score)}%",
-            modifier = Modifier.width(80.dp),
+            text = user.textoProgreso,
+            modifier = Modifier.width(90.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             color = Color(0xFFD0FF00),

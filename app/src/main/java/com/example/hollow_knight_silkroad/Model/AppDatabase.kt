@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
     version = 6, exportSchema = false)
 abstract class AppDatabase: RoomDatabase(){
     abstract fun usuarioDao(): UsuarioDao
-    abstract fun ChecklistItemDao(): ChecklistItemDao
 
     companion object {
         @Volatile

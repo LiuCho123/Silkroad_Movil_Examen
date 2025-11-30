@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hollow_knight_silkroad.Model.ChecklistItem
@@ -41,53 +42,64 @@ fun ChecklistScreen(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-                Text(" Cargando progreso...", modifier = Modifier.padding(top = 60.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+            when {
+                uiState.isLoading -> {
+                    CircularProgressIndicator()
+                    Text(" Cargando progreso...", modifier = Modifier.padding(top = 60.dp), color = MaterialTheme.colorScheme.onPrimary)
+                }
+                uiState.error != null -> {
                     Text(
-                        text = "Progreso Total: ${String.format("%.2f", uiState.currentPercentage)}%",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    Text(
-                        text = "Items restantes: ${uiState.itemsRemaining}",
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Progreso Total: ${String.format("%.2f", uiState.currentPercentage)}%",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "Items restantes: ${uiState.itemsRemaining}",
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(onClick = { viewModel.resetProgress() }) {
-                        Text("Reiniciar Progreso")
-                    }
+                        Button(onClick = { viewModel.reiniciarProgreso() }) {
+                            Text("Reiniciar Progreso")
+                        }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        uiState.categories.forEach { category ->
-                            item {
-                                Text(
-                                    category.title,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            uiState.categories.forEach { category ->
+                                item {
+                                    Text(
+                                        category.title,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                                items(category.items, key = { it.itemId }) { item ->
+                                    ChecklistItemRow(
+                                        item = item,
+                                        isChecked = uiState.checkedItemIds.contains(item.itemId),
+                                        onCheckedChange = { viewModel.toggleItemChecked(item.itemId) }
+                                    )
+                                }
+                                item { Spacer(modifier = Modifier.height(16.dp)) }
                             }
-                            items(category.items, key = { it.id }) { item ->
-                                ChecklistItemRow(
-                                    item = item,
-                                    isChecked = uiState.checkedItemIds.contains(item.id),
-                                    onCheckedChange = { viewModel.toggleItemChecked(item.id) }
-                                )
-                            }
-                            item { Spacer(modifier = Modifier.height(16.dp)) }
                         }
                     }
                 }
