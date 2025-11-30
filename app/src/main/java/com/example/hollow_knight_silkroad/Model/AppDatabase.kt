@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 @Database(entities = [Usuario::class, Hilo::class, Respuesta::class, CheckedItem::class,
     Pregunta::class, Opcion::class],
-    version = 6, exportSchema = false)
+    version = 7, exportSchema = false)
 abstract class AppDatabase: RoomDatabase(){
     abstract fun usuarioDao(): UsuarioDao
     abstract fun ChecklistItemDao(): ChecklistItemDao
@@ -36,7 +36,6 @@ abstract class AppDatabase: RoomDatabase(){
                             super.onCreate(db)
                             CoroutineScope(Dispatchers.IO).launch {
                                 val database = getDatabase(context)
-                                prepoblarHilos(database.hiloDao())
                                 prepoblarTrivia(database.preguntaDao(), database.opcionDao())
                             }
                         }
@@ -47,28 +46,6 @@ abstract class AppDatabase: RoomDatabase(){
                 INSTANCE = instance
                 instance
             }
-        }
-
-        suspend fun prepoblarHilos(hiloDao: HiloDao){
-            val ahora = System.currentTimeMillis()
-            val hilosIniciales = listOf(
-                Hilo(idHilo = 1, titulo = "Guía para el Panteón de Hallownest", autor = "HornetFan92",
-                    contenido = "¡Hola a todos! Abro este hilo...",
-                    fechaCreacion = ahora - 86400000),
-                Hilo(idHilo = 2, titulo = "¿Creen que Silksong salga este año?", autor = "LaceLover",
-                    contenido = "Ya no puedo más con la espera...",
-                    fechaCreacion = ahora - 172800000),
-                Hilo(idHilo = 3, titulo = "Mis amuletos favoritos para exploración", autor = "TheMiner2",
-                    contenido = "Para moverme rápido por el mapa...",
-                    fechaCreacion = ahora)
-            )
-
-            hilosIniciales.forEach { hilo ->
-                if (hiloDao.getHiloById(hilo.idHilo) == null){
-                    hiloDao.insertarHilo(hilo)
-                }
-            }
-            println("Base de datos poblada con Hilos")
         }
 
         suspend fun prepoblarTrivia(preguntaDao: PreguntaDao, opcionDao: OpcionDao) {

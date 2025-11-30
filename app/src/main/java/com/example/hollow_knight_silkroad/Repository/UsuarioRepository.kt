@@ -1,5 +1,7 @@
 package com.example.hollow_knight_silkroad.Repository
 
+import android.content.Context
+import com.example.hollow_knight_silkroad.Data.SessionManager
 import com.example.hollow_knight_silkroad.Model.Usuario
 import com.example.hollow_knight_silkroad.Model.UsuarioDao
 import com.example.hollow_knight_silkroad.Network.AuthApiService
@@ -7,15 +9,34 @@ import com.example.hollow_knight_silkroad.Network.CambioPasswordRequest
 import com.example.hollow_knight_silkroad.Network.LoginRequest
 import com.example.hollow_knight_silkroad.Network.RegisterRequest
 import com.example.hollow_knight_silkroad.Network.RetrofitClient
+import kotlinx.coroutines.flow.first
 import org.intellij.lang.annotations.Identifier
 
 
-class UsuarioRepository(){
+class UsuarioRepository(context: Context){
 
     private val authService = RetrofitClient.createService(AuthApiService::class.java, 8080)
 
+    private val sessionManager = SessionManager(context)
     companion object{
         var usuarioActual: Usuario? = null
+    }
+
+    suspend fun verificarSesionGuardad(): Boolean {
+        val usuarioGuardado = sessionManager.userFlow.first()
+
+        return if (usuarioGuardado != null){
+            println("Sesion de usuario recuperada: ${usuarioGuardado.usuario}")
+            usuarioActual = usuarioGuardado
+            true
+        } else{
+            false
+        }
+    }
+
+    suspend fun logout(){
+        sessionManager.clearSession()
+        usuarioActual = null
     }
 
     suspend fun findUsuarioByIdentifier(identifier: String, contrasena: String): Usuario?{
@@ -37,6 +58,7 @@ class UsuarioRepository(){
                 )
 
                 usuarioActual = usuarioLogueado
+                sessionManager.saveUser(usuarioLogueado)
 
                 return usuarioLogueado
             } else {
