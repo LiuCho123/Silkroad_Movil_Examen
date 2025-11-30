@@ -23,11 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.hollow_knight_silkroad.Model.AppDatabase
-import com.example.hollow_knight_silkroad.Repository.ChecklistRepositoryDb
-import com.example.hollow_knight_silkroad.Repository.HiloRepository
-import com.example.hollow_knight_silkroad.Repository.RespuestaRepository
-import com.example.hollow_knight_silkroad.Repository.TriviaRepository
-import com.example.hollow_knight_silkroad.Repository.UsuarioRepository
+import com.example.hollow_knight_silkroad.Repository.* 
 import com.example.hollow_knight_silkroad.View.Components.BottomNavigationBar
 import com.example.hollow_knight_silkroad.View.Components.NavigationItem
 import com.example.hollow_knight_silkroad.View.Components.bottomNavItems
@@ -57,16 +53,23 @@ class MainActivity : ComponentActivity() {
                 val usuarioRepository = remember { UsuarioRepository(context) }
                 val hiloRepository = remember { HiloRepository() }
                 val respuestaRepository = remember { RespuestaRepository() }
-                val triviaRepository = remember { TriviaRepository(database.preguntaDao(), database.opcionDao()) }
-                val checklistRepository = remember { ChecklistRepositoryDb(database.ChecklistItemDao()) }
+                val triviaRepository = remember { TriviaRepository() }
+                val networkChecklistRepository = remember { NetworkChecklistRepository() }
 
                 val loginViewModel = remember { LoginViewModel(usuarioRepository) }
                 val registroViewModel = remember { RegistroViewModel(usuarioRepository) }
                 val recuperarViewModel = remember { RecuperarContrasenaViewModel(usuarioRepository) }
                 val crearHiloViewModel = remember { CrearHiloViewModel(hiloRepository) }
                 val triviaViewModel = remember { TriviaViewModel(triviaRepository) }
-                val checklistViewModel: ChecklistViewModel = viewModel(factory = ChecklistViewModelFactory(checklistRepository))
+                val checklistViewModel: ChecklistViewModel = viewModel(factory = ChecklistViewModelFactory(networkChecklistRepository, usuarioRepository))
+                val rankingViewModel: RankingViewModel = viewModel(
+                    factory = RankingViewModel.RankingViewModelFactory(
+                        networkChecklistRepository,
+                        usuarioRepository
+                    )
+                )
                 val guiaViewModel: GuiaViewModel = viewModel()
+
 
                 var startDestination by remember { mutableStateOf("home") }
                 var isCheckingSession by remember { mutableStateOf(true) }
@@ -113,14 +116,22 @@ class MainActivity : ComponentActivity() {
                                 composable("recuperarPassword") { RecuperarPasswordScreen(viewModel = recuperarViewModel, navController = navController) }
                             }
 
-                            composable(NavigationItem.Foro.route) {
-                                val foroViewModel = remember { ForoViewModel(hiloRepository, respuestaRepository, usuarioRepository) }
-                                ForoScreen(viewModel = foroViewModel, navController = navController)
+                        composable(NavigationItem.Foro.route) {
+                            val foroViewModel = remember { ForoViewModel(hiloRepository, respuestaRepository, usuarioRepository) }
+                            ForoScreen(viewModel = foroViewModel, navController = navController)
+                        }
+                        composable(NavigationItem.Guia.route) { 
+                            GuiaScreen(viewModel = guiaViewModel) 
+                        }
+                        composable(NavigationItem.Checklist.route) {
+                            ChecklistScreen(viewModel = checklistViewModel)
+                        }
+                            composable(NavigationItem.Ranking.route) {
+                                RankingScreen(viewModel = rankingViewModel)
                             }
-                            composable(NavigationItem.Guia.route) { GuiaScreen(viewModel = guiaViewModel) }
-                            composable(NavigationItem.Checklist.route) { ChecklistScreen(viewModel = checklistViewModel) }
-                            composable(NavigationItem.Ranking.route) { RankingScreen(checklistViewModel = checklistViewModel) }
-                            composable(NavigationItem.Trivia.route) { TriviaScreen(viewModel = triviaViewModel, navController = navController) }
+                        composable(bottomNavItems[4].route) {
+                            TriviaScreen(viewModel = triviaViewModel, navController = navController)
+                        }
 
                             composable("crearHilo") { CrearHiloScreen(viewModel = crearHiloViewModel, navController = navController) }
 

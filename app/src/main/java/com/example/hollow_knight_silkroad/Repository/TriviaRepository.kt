@@ -1,20 +1,19 @@
 package com.example.hollow_knight_silkroad.Repository
 
-import com.example.hollow_knight_silkroad.Model.Opcion
-import com.example.hollow_knight_silkroad.Model.OpcionDao
 import com.example.hollow_knight_silkroad.Model.Pregunta
-import com.example.hollow_knight_silkroad.Model.PreguntaDao
+import com.example.hollow_knight_silkroad.Network.JuegoApiService
+import com.example.hollow_knight_silkroad.Network.RetrofitClient
 
-class TriviaRepository(
-    private val preguntaDao: PreguntaDao,
-    private val opcionDao: OpcionDao
-) {
+class TriviaRepository {
 
-    suspend fun  getPreguntas(): List<Pregunta>{
-        return preguntaDao.getAllPreguntas()
-    }
+    private val apiService = RetrofitClient.createService(JuegoApiService::class.java, 8082)
 
-    suspend fun getOpciones(preguntaId: Int): List<Opcion>{
-        return opcionDao.getOpcionesByPreguntaId(preguntaId)
+    suspend fun obtenerPreguntas(): List<Pregunta> {
+        return try {
+            val response = apiService.obtenerTrivia()
+            if (response.isSuccessful) response.body() ?: emptyList() else emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

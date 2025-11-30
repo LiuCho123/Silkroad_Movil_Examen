@@ -34,6 +34,17 @@ class UsuarioRepository(context: Context){
         }
     }
 
+    fun obtenerIdUsuarioGuardado(): Int {
+        return usuarioActual?.idUsuario ?: -1
+    }
+
+    // --- NUEVO MÉTODO AGREGADO ---
+    // Este es el que necesita RankingViewModel para mostrar tu nombre real
+    fun obtenerNombreUsuarioGuardado(): String? {
+        return usuarioActual?.usuario
+    }
+    // -----------------------------
+
     suspend fun logout(){
         sessionManager.clearSession()
         usuarioActual = null
