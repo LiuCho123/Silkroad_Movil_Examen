@@ -1,11 +1,16 @@
 package com.example.hollow_knight_silkroad.Model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 
-@Entity(tableName = "pregunta")
 data class Pregunta(
-    @PrimaryKey(autoGenerate = true)
-    val idPregunta: Int = 0,
-    val textoPregunta: String
+    val id: Int,
+
+    @SerializedName("pregunta")
+    val pregunta: String,
+
+    @SerializedName("opciones")
+    val opciones: List<String>,
+
+    @SerializedName("respuestaCorrecta")
+    val respuestaCorrecta: String
 )

@@ -1,9 +1,19 @@
 package com.example.hollow_knight_silkroad.View.Screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -15,9 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.hollow_knight_silkroad.Model.Opcion
+import com.example.hollow_knight_silkroad.Model.Pregunta
 import com.example.hollow_knight_silkroad.View.Components.AppBackground
-import com.example.hollow_knight_silkroad.ViewModel.PreguntaConOpciones
 import com.example.hollow_knight_silkroad.ViewModel.TriviaUIState
 import com.example.hollow_knight_silkroad.ViewModel.TriviaViewModel
 
@@ -72,8 +81,8 @@ fun TriviaScreen(viewModel: TriviaViewModel, navController: NavController) {
 @Composable
 fun PantallaPregunta(
     uiState: TriviaUIState,
-    pregunta: PreguntaConOpciones,
-    onRespuestaClick: (Opcion) -> Unit
+    pregunta: Pregunta,
+    onRespuestaClick: (String) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,7 +95,7 @@ fun PantallaPregunta(
         )
 
         Text(
-            text = pregunta.pregunta.textoPregunta,
+            text = pregunta.pregunta,
             color = Color.White,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -96,7 +105,7 @@ fun PantallaPregunta(
 
         pregunta.opciones.forEach { opcion ->
             val esLaSeleccionada = uiState.respuestaSeleccionada == opcion
-            val esLaCorrecta = opcion.esCorrecta
+            val esLaCorrecta = opcion == pregunta.respuestaCorrecta
 
             val colorBoton = when {
                 uiState.respuestaSeleccionada != null -> {
@@ -119,12 +128,11 @@ fun PantallaPregunta(
                 ),
                 enabled = uiState.respuestaSeleccionada == null
             ) {
-                Text(opcion.textoOpcion, fontSize = 16.sp, color = Color.White)
+                Text(opcion, fontSize = 16.sp, color = Color.White)
             }
         }
     }
 }
-
 
 @Composable
 fun PantallaResultado(puntaje: Int, totalPreguntas: Int, onReiniciar: () -> Unit) {

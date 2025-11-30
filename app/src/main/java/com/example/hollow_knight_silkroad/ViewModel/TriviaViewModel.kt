@@ -2,16 +2,25 @@ package com.example.hollow_knight_silkroad.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hollow_knight_silkroad.Model.Opcion
+import com.example.hollow_knight_silkroad.Model.Pregunta
 import com.example.hollow_knight_silkroad.Repository.TriviaRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class TriviaViewModel(private val repository: TriviaRepository): ViewModel() {
+data class TriviaUIState(
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val preguntas: List<Pregunta> = emptyList(),
+    val preguntaActualIndex: Int = 0,
+    val respuestaSeleccionada: String? = null,
+    val puntaje: Int = 0,
+    val juegoTerminado: Boolean = false
+)
+
+class TriviaViewModel(private val repository: TriviaRepository) : ViewModel() {
+
     private val _uiState = MutableStateFlow(TriviaUIState())
     val uiState: StateFlow<TriviaUIState> = _uiState.asStateFlow()
 
@@ -19,82 +28,46 @@ class TriviaViewModel(private val repository: TriviaRepository): ViewModel() {
         cargarPreguntas()
     }
 
-    private fun cargarPreguntas(){
-        viewModelScope.launch{
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            try{
-                var preguntas = repository.getPreguntas()
-                var intentos = 0
-
-                while(preguntas.isEmpty() && intentos < 5){
-                    delay(500) // Espera
-                    preguntas = repository.getPreguntas()
-                    intentos++
-                }
-
-                val preguntasConOpciones = preguntas.map{ pregunta ->
-                    val opciones = repository.getOpciones(pregunta.idPregunta)
-                    PreguntaConOpciones(pregunta = pregunta, opciones = opciones.shuffled())
-                }
-
-                _uiState.update { it.copy(
-                    isLoading = false,
-                    preguntas = preguntasConOpciones.shuffled()
-                ) }
-
-            } catch (e: Exception){
-                _uiState.update { it.copy(isLoading = false, error = "Error al cargar la trivia") }
-                println("Error en TriviaViewModel: ${e.message}")
-                e.printStackTrace()
+    private fun cargarPreguntas() {
+        viewModelScope.launch {
+            try {
+                val preguntas = repository.obtenerPreguntas()
+                _uiState.value = TriviaUIState(isLoading = false, preguntas = preguntas)
+            } catch (e: Exception) {
+                _uiState.value = TriviaUIState(isLoading = false, error = e.message)
             }
         }
     }
 
-    fun handleRespuestaClick(opcionSeleccionada: Opcion){
-        if (_uiState.value.respuestaSeleccionada != null) return
+    fun handleRespuestaClick(opcion: String) {
+        if (_uiState.value.respuestaSeleccionada == null) {
+            val preguntaActual = _uiState.value.preguntas[_uiState.value.preguntaActualIndex]
+            val esCorrecta = opcion == preguntaActual.respuestaCorrecta
 
-        var puntajeActual = _uiState.value.puntaje
-        if(opcionSeleccionada.esCorrecta){
-            puntajeActual++
-        }
-
-        _uiState.update{
-            it.copy(
-                respuestaSeleccionada = opcionSeleccionada,
-                puntaje = puntajeActual
+            _uiState.value = _uiState.value.copy(
+                respuestaSeleccionada = opcion,
+                puntaje = if (esCorrecta) _uiState.value.puntaje + 1 else _uiState.value.puntaje
             )
-        }
 
-        viewModelScope.launch{
-            delay(1500)
-            siguientePregunta()
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(1000) // Espera 1 segundo
+                siguientePregunta()
+            }
         }
     }
 
-    private fun siguientePregunta(){
-        val state = _uiState.value
-        val siguienteIndex = state.preguntaActualIndex + 1
-
-        if (siguienteIndex < state.preguntas.size){
-            _uiState.update { it.copy(
-                preguntaActualIndex = siguienteIndex,
+    private fun siguientePregunta() {
+        if (_uiState.value.preguntaActualIndex < _uiState.value.preguntas.size - 1) {
+            _uiState.value = _uiState.value.copy(
+                preguntaActualIndex = _uiState.value.preguntaActualIndex + 1,
                 respuestaSeleccionada = null
-            ) }
-        } else{
-            _uiState.update { it.copy(juegoTerminado = true) }
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(juegoTerminado = true)
         }
     }
 
-    fun reiniciarTrivia(){
-        cargarPreguntas()
-        _uiState.update {
-            it.copy(
-                preguntaActualIndex = 0,
-                puntaje = 0,
-                juegoTerminado = false,
-                respuestaSeleccionada = null,
-                isLoading = true
-            )
-        }
+    fun reiniciarTrivia() {
+        _uiState.value = TriviaUIState(isLoading = false, preguntas = _uiState.value.preguntas)
     }
 }

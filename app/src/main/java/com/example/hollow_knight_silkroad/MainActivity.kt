@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                 val usuarioRepository = remember { UsuarioRepository(context) }
                 val hiloRepository = remember { HiloRepository() }
                 val respuestaRepository = remember { RespuestaRepository() }
-                val triviaRepository = remember { TriviaRepository(database.preguntaDao(), database.opcionDao()) }
+                val triviaRepository = remember { TriviaRepository() }
                 val checklistRepository = remember { ChecklistRepositoryDb(database.ChecklistItemDao()) }
 
                 val loginViewModel = remember { LoginViewModel(usuarioRepository) }
