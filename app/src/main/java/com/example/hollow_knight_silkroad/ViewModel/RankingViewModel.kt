@@ -2,6 +2,7 @@ package com.example.hollow_knight_silkroad.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hollow_knight_silkroad.Repository.SpeedrunRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,8 @@ data class RankingUser(
 
 data class RankingUiState(
     val topUsers: List<RankingUser> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val speedrunRecord: String = "Cargando record mundial..."
 )
 
 
@@ -25,6 +27,7 @@ class RankingViewModel(
 
     private val _uiState = MutableStateFlow(RankingUiState())
     val uiState: StateFlow<RankingUiState> = _uiState.asStateFlow()
+    private val speedrunRepository = SpeedrunRepository()
 
     private val currentUsername = "Liucho"
 
@@ -36,6 +39,8 @@ class RankingViewModel(
                 }
             }
         }
+
+        cargarRecordMundial()
     }
 
     private fun prepareRanking(currentUserPercentage: Double) {
@@ -63,4 +68,12 @@ class RankingViewModel(
             it.copy(topUsers = allUsers, isLoading = false)
         }
     }
+
+    private fun cargarRecordMundial(){
+        viewModelScope.launch{
+            val record = speedrunRepository.obtenerRecordMundial()
+            _uiState.update { it.copy(speedrunRecord = record) }
+        }
+    }
 }
+
