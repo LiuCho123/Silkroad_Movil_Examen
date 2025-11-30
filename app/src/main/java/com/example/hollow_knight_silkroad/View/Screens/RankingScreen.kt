@@ -94,7 +94,7 @@ fun RankingScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = Color(0xFF2C003E).copy(alpha = 0.8f)
                             ),
-                            border = BorderStroke(1.dp, Color(0xFFFFD700)), // Borde Dorado
+                            border = BorderStroke(1.dp, Color(0xFFFFD700)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(
@@ -103,7 +103,7 @@ fun RankingScreen(
                             ) {
                                 Text(
                                     text = "🌍 Récord Mundial (Speedrun.com)",
-                                    color = Color(0xFFFFD700), // Dorado
+                                    color = Color(0xFFFFD700),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
