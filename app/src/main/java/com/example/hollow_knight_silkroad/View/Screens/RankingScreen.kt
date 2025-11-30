@@ -1,5 +1,6 @@
 package com.example.hollow_knight_silkroad.View.Screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -85,6 +86,46 @@ fun RankingScreen(
                     itemsIndexed(rankingState.topUsers, key = { _, user -> user.name }) { index, user ->
                         RankingRow(rank = index + 1, user = user)
                         HorizontalDivider()
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFF2C003E).copy(alpha = 0.8f)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFFFFD700)), // Borde Dorado
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "🌍 Récord Mundial (Speedrun.com)",
+                                    color = Color(0xFFFFD700), // Dorado
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = rankingState.speedrunRecord,
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Categoría: Any% No Major Glitches",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
