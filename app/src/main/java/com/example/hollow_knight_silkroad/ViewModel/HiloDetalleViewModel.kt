@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.example.hollow_knight_silkroad.Repository.UsuarioRepository
+import com.example.hollow_knight_silkroad.Repository.UsuarioRepository.Companion.usuarioActual
 import kotlinx.coroutines.launch
 
 class HiloDetalleViewModel(
@@ -31,8 +33,10 @@ class HiloDetalleViewModel(
                 val respuestas = respuestaRepository.getRespuestasByHiloId(hiloId)
 
                 if (hilo != null){
+                    val miId = usuarioActual?.idUsuario
+                    val soyElDueno = (miId != null && miId == hilo.idUsuario)
                     _uiState.update {
-                        it.copy(isLoading = false, hilo = hilo, respuestas = respuestas)
+                        it.copy(isLoading = false, hilo = hilo, respuestas = respuestas, esMiHilo = soyElDueno)
                     }
                 } else{
                     _uiState.update { it.copy(isLoading = false, error = "Hilo no encontrado") }

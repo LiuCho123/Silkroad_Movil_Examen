@@ -46,6 +46,7 @@ class CrearHiloViewModel(private val repository: HiloRepository): ViewModel() {
                 titulo = currentState.titulo,
                 contenido = currentState.contenido,
                 autor = "LiuCho",
+                idUsuario = 0,
                 imagenUri = currentState.imagenUriSeleccionada,
                 fechaCreacion = System.currentTimeMillis()
             )

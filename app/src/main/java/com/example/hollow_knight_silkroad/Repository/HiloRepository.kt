@@ -24,6 +24,7 @@ class HiloRepository() {
                         titulo = hiloJava.tituloHilo,
                         contenido = hiloJava.mensajeInicialHilo,
                         autor = hiloJava.autorHilo,
+                        idUsuario = hiloJava.idUsuario,
                         fechaCreacion = parsearFecha(hiloJava.fechaHilo),
                         imagenUri = hiloJava.imagenBase64
                     )
@@ -85,6 +86,7 @@ class HiloRepository() {
                     titulo = h.tituloHilo,
                     contenido = h.mensajeInicialHilo,
                     autor = h.autorHilo,
+                    idUsuario = h.idUsuario,
                     fechaCreacion = parsearFecha(h.fechaHilo),
                     imagenUri = h.imagenBase64
                 )

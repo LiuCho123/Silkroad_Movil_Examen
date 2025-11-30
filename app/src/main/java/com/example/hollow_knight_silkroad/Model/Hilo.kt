@@ -10,6 +10,7 @@ data class Hilo (
     val titulo: String = "",
     val contenido: String,
     val autor: String,
+    val idUsuario: Int,
     val imagenUri: String? = null,
     val fechaCreacion: Long = System.currentTimeMillis()
 )
