@@ -13,7 +13,7 @@ El objetivo de Silk Road es ofrecer una experiencia completa que acompañe al ju
 La plataforma cuenta con varias secciones interconectadas para ofrecer una experiencia integral:
 
 *  **Guía Completa:** Una guía detallada y paso a paso que cubre desde los primeros momentos en el Paso del Rey hasta los enfrentamientos con los jefes más desafiantes del juego.
-*  **Checklist Interactivo del 112%:** Lleva un registro de tu progreso con una checklist detallada que calcula tu porcentaje de completitud en tiempo real. ¡Tu progreso se guarda automáticamente en tu navegador gracias a `SQLite`!
+*  **Checklist Interactivo del 112%:** Lleva un registro de tu progreso con una checklist detallada que calcula tu porcentaje de completitud en tiempo real. ¡Tu progreso se guarda automáticamente en tu aplicacion!
 *  **Foro Comunitario:** Un espacio dedicado para que los jugadores puedan discutir teorías, compartir fan-arts, pedir ayuda o simplemente hablar sobre el lore de Hallownest.
 * **Ranking de Jugadores:** Un sistema para comparar logros, tiempos en los panteones o cualquier otro desafío que la comunidad proponga.
 *  **Trivia de Hallownest:** Pon a prueba tus conocimientos sobre el vasto mundo de *Hollow Knight* con una divertida trivia de preguntas y respuestas.
