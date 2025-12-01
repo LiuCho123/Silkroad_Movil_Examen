@@ -20,12 +20,31 @@ La plataforma cuenta con varias secciones interconectadas para ofrecer una exper
 *  **Sistema de Usuarios:** La plataforma cuenta con un sistema de registro e inicio de sesión para que los usuarios puedan tener una experiencia personalizada.
 
 ---
-
+##EndPoints
+ @GET("api/hilos")
+ @POST("api/hilos")
+ @GET("api/hilos/{id}")
+ @DELETE("api/hilos/{id}")
+ @GET("api/hilos/{id}/respuestas")
+ @POST("api/hilos/{id}/respuestas")
+ @POST("api/usuarios/login")
+ @POST("api/usuarios/registro")
+ @POST("api/recuperacion/solicitar")
+ @POST("api/recuperacion/cambiar")
+ @GET("api/checklist")
+ @GET("api/checklist/progreso/{idUsuario}")
+ @POST("api/checklist/progreso")
+ @GET("api/trivia")
+ @GET("api/checklist/ranking")
+ @GET("api/v1/leaderboards/hollowknight/category/02q8o4p2?top=1&var-yn2p3085=81w7r6vq")
+ https://github.com/LiuCho123/Silkroad_Entrega_3 (PROYECTO FULLSTACK)
 ## 🛠️ Tecnologías Utilizadas
 
 Este proyecto fue construido utilizando tecnologías web estándar, enfocándose en la interactividad y la experiencia de usuario.
 
 * **Kotlin:** Para la estructura semántica del contenido.
 ## Estado del Proyecto
-
+**INTRUCCIONES**
+Tener AWS activo para la nube y los endpoints, ejecutar aplicacion.
 Todas las funcionalidades principales implementadas.
+Integrantes: Luis Cabello -- Steven Larraguibel
