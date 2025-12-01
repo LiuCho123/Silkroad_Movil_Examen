@@ -22,8 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.hollow_knight_silkroad.Model.AppDatabase
-import com.example.hollow_knight_silkroad.Repository.* 
+import com.example.hollow_knight_silkroad.Repository.*
 import com.example.hollow_knight_silkroad.View.Components.BottomNavigationBar
 import com.example.hollow_knight_silkroad.View.Components.NavigationItem
 import com.example.hollow_knight_silkroad.View.Components.bottomNavItems
@@ -49,7 +48,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val context = LocalContext.current
 
-                val database = remember { AppDatabase.getDatabase(context) }
                 val usuarioRepository = remember { UsuarioRepository(context) }
                 val hiloRepository = remember { HiloRepository() }
                 val respuestaRepository = remember { RespuestaRepository() }

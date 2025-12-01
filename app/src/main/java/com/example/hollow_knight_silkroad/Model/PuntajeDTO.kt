@@ -1,4 +1,4 @@
-package com.example.hollow_knight_silkroad.Model // Ajusta a tu paquete real
+package com.example.hollow_knight_silkroad.Model
 
 import com.google.gson.annotations.SerializedName
 
